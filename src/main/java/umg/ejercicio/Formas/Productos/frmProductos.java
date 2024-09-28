@@ -6,6 +6,7 @@ import umg.ejercicio.DataBase.Services.ProductoService;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.SQLException;
 
 public class frmProductos {
     private JPanel JPanelPrincipal;
@@ -72,17 +73,36 @@ public class frmProductos {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-                    int idProducto = textFieldId.getText().isEmpty() ? 0 : Integer.parseInt(textFieldId.getText());
+                    // Validar que el campo ID no esté vacío y sea numérico
+                    if (textFieldId.getText().isEmpty()) {
+                        JOptionPane.showMessageDialog(null, "El campo ID no puede estar vacío.", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
 
-                    // Asumiendo que tienes campos de texto para otros atributos del producto
+                    int idProducto = Integer.parseInt(textFieldId.getText());
+
+                    // Validar que el campo nombre no esté vacío
                     String nombre = textFieldNombreProducto.getText();
-                    int idOrigen = Integer.parseInt(comboBoxOrigen.getSelectedItem().toString());
-                    int id = idProducto;
+                    if (nombre.isEmpty()) {
+                        JOptionPane.showMessageDialog(null, "El campo nombre no puede estar vacío.", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
 
-                    Producto productoActualizado = new Producto(idProducto, nombre, idOrigen, id);
+                    // Validar que el comboBox de origen tenga un valor seleccionado
+                    if (comboBoxOrigen.getSelectedItem() == null) {
+                        JOptionPane.showMessageDialog(null, "Seleccione un origen válido.", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
 
+                    // Obtener el origen seleccionado desde el comboBox
+                    String origen = comboBoxOrigen.getSelectedItem().toString();
+
+                    // Crear un objeto Producto con los datos ingresados
+                    Producto productoActualizado = new Producto(idProducto, nombre, origen);
+
+                    // Llamar al servicio para actualizar el producto
                     ProductoService productoService = new ProductoService();
-                    boolean actualizado = productoService.actualizarProducto(productoActualizado);
+                    boolean actualizado = productoService.actualizarProducto(idProducto, nombre, origen);
 
                     if (actualizado) {
                         JOptionPane.showMessageDialog(null, "Producto actualizado con éxito.");
@@ -92,10 +112,13 @@ public class frmProductos {
                     }
                 } catch (NumberFormatException ex) {
                     JOptionPane.showMessageDialog(null, "Por favor, ingrese valores numéricos válidos.", "Error", JOptionPane.ERROR_MESSAGE);
+                } catch (SQLException ex) {
+                    JOptionPane.showMessageDialog(null, "Error al actualizar el producto: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(null, "Error al actualizar: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "Error inesperado: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
+
     }
 }
